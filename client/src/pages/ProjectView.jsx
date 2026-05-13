@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
-import Navbar from "../components/Navbar";
+import Layout from "../components/Layout";
 import { useAdminData } from "../context/AdminDataContext";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -28,17 +28,16 @@ function ProjectView() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-100 via-gray-200 to-gray-300 flex flex-col font-sans">
-        <Navbar />
-        <div className="flex flex-1 items-center justify-center">
-          <div className="bg-white/40 backdrop-blur-md px-10 py-6 rounded-2xl shadow-xl border border-white/50 text-gray-500 font-semibold mt-10">
+      <Layout>
+        <div className="flex flex-1 items-center justify-center min-h-[60vh]">
+          <div className="bg-white px-10 py-6 rounded-xl shadow-sm border border-gray-200 text-gray-500 font-semibold mt-10">
             <span className="animate-pulse flex items-center gap-3">
                <svg className="animate-spin h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                Loading Project Data...
             </span>
           </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
@@ -461,38 +460,33 @@ function ProjectView() {
   const roomsList = project.rooms ? Object.entries(project.rooms) : [];
 
   return (
-  <div className="min-h-screen bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-gray-50 flex flex-col font-sans text-gray-800 relative isolation-auto">
-      {/* Decorative gradients */}
-      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-br from-indigo-100/50 via-purple-100/30 to-transparent -z-10"></div>
-      
-      <Navbar />
-
-      <div className="p-8 max-w-7xl mx-auto w-full flex-1 mt-6">
+    <Layout>
+      <div className="max-w-7xl mx-auto w-full flex-1">
         
-        {/* Header Block with Glassmorphism */}
-        <div className="bg-white/70 backdrop-blur-xl p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white flex flex-col md:flex-row justify-between items-start md:items-center mb-10 transition-all hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)]">
+        {/* Header Block with Flat Premium UI */}
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center mb-8 transition-colors hover:border-gray-300">
           <div>
-            <div className="flex gap-3 mb-2 items-center">
-              <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${project.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+            <div className="flex gap-3 mb-3 items-center">
+              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider ${project.status === 'completed' ? 'bg-gray-100 text-gray-800 border border-gray-200' : 'bg-gray-900 text-white'}`}>
                 {project.status === 'completed' ? 'Completed Dashboard' : 'Active Dashboard'}
               </span>
-              <span className="text-gray-400 text-sm font-medium">{project.customId || `#${id}`}</span>
+              <span className="text-gray-400 text-xs font-semibold">{project.customId || `#${id}`}</span>
             </div>
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-1">{project.name || "Untitled Project"}</h1>
-            <p className="text-gray-500 font-medium tracking-wide flex items-center gap-4">
-              <span>Property: <span className="text-gray-800 font-bold">{project.property || "Unknown"}</span></span>
-              <span>•</span>
-              <span>Dimensions: <span className="text-gray-800 font-bold">{project.sqft || 0} SqFt</span></span>
-              <span>•</span>
-              <span>Location: <span className="text-gray-800 font-bold">{project.location || "Not Provided"}</span></span>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">{project.name || "Untitled Project"}</h1>
+            <p className="text-gray-500 font-medium text-sm flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span>Property: <span className="text-gray-800 font-semibold">{project.property || "Unknown"}</span></span>
+              <span className="text-gray-300">•</span>
+              <span>Dimensions: <span className="text-gray-800 font-semibold">{project.sqft || 0} SqFt</span></span>
+              <span className="text-gray-300">•</span>
+              <span>Location: <span className="text-gray-800 font-semibold">{project.location || "Not Provided"}</span></span>
             </p>
           </div>
           
-          <div className="mt-6 md:mt-0 text-left md:text-right">
-            <p className="text-gray-500 uppercase tracking-widest text-xs font-bold mb-1">Total Project Cost</p>
-            <h2 className="text-4xl font-black text-gray-900 drop-shadow-sm">₹ {((project.total || 0) - (project.discount || 0)).toLocaleString()}</h2>
+          <div className="mt-6 md:mt-0 text-left md:text-right md:pl-8 md:border-l border-gray-100">
+            <p className="text-gray-500 uppercase tracking-widest text-[11px] font-bold mb-1.5">Total Project Cost</p>
+            <h2 className="text-3xl font-bold text-gray-900">₹ {((project.total || 0) - (project.discount || 0)).toLocaleString()}</h2>
             {project.discount > 0 && (
-              <p className="text-green-600 text-xs font-bold mt-1 tracking-tight">
+              <p className="text-gray-500 text-xs font-semibold mt-1.5 bg-gray-50 inline-block px-2 py-1 rounded">
                 {project.discountPct ? `${project.discountPct}% Discount applied` : `₹${project.discount.toLocaleString()} Discount`}
               </p>
             )}
@@ -500,26 +494,26 @@ function ProjectView() {
         </div>
 
         {/* Master Actions */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 px-2">
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight">Configured Rooms</h2>
-          <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Configured Rooms</h2>
+          <div className="flex gap-3 flex-wrap">
             <button
               onClick={handleApplyDiscount}
-              className="bg-orange-500/90 backdrop-blur-md text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 hover:bg-orange-600 transition-all duration-300 flex items-center gap-2"
+              className="bg-white border border-gray-300 text-gray-700 font-semibold px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 text-sm shadow-sm"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12z"></path></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12z"></path></svg>
               Apply Discount
             </button>
             <button
               onClick={handleDownloadInvoice}
-              className="bg-emerald-500/90 backdrop-blur-md text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 hover:bg-emerald-600 transition-all duration-300 flex items-center gap-2"
+              className="bg-white border border-gray-300 text-gray-700 font-semibold px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 text-sm shadow-sm"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              Download Invoice
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              Invoice
             </button>
             <button
               onClick={() => navigate("/rooms", { state: { projectId: id } })}
-              className="bg-gray-900/90 backdrop-blur-md text-white font-bold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 hover:bg-black transition-all duration-300"
+              className="bg-gray-900 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-colors text-sm shadow-sm"
             >
               + Add New Room
             </button>
@@ -532,7 +526,7 @@ function ProjectView() {
             <p className="text-gray-500 font-medium mb-4">No rooms have been added to this project yet.</p>
             <button
               onClick={() => navigate("/rooms", { state: { projectId: id } })}
-              className="bg-blue-600 text-white font-medium px-6 py-2 rounded shadow hover:bg-blue-700 transition"
+              className="bg-gray-900 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-colors text-sm shadow-sm"
             >
               Start Room Configuration
             </button>
@@ -542,13 +536,13 @@ function ProjectView() {
             {roomsList.map(([roomId, roomData]) => {
               const displayTitle = roomData.name || roomId;
               return (
-              <div key={roomId} className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-sm hover:shadow-md transition duration-300 border border-white/60 overflow-hidden group">
+              <div key={roomId} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden group">
                 
                 {/* Room Header */}
-                <div className="bg-gradient-to-r from-gray-50/80 to-transparent px-8 py-5 flex justify-between items-center border-b border-gray-100 group-hover:bg-blue-50/30 transition-colors duration-300">
-                  <h3 className="text-2xl font-black text-gray-900 capitalize tracking-tight">{displayTitle}</h3>
+                <div className="bg-white px-8 py-5 flex justify-between items-center border-b border-gray-200 transition-colors duration-200">
+                  <h3 className="text-xl font-bold text-gray-900 capitalize tracking-tight">{displayTitle}</h3>
                   <div className="flex gap-4 items-center">
-                    <p className="text-gray-900 font-extrabold bg-white/60 backdrop-blur-md px-5 py-2 rounded-xl shadow-sm text-sm border border-white">
+                    <p className="text-gray-900 font-bold bg-gray-50 px-4 py-2 rounded-lg text-sm border border-gray-200">
                       Room Total: ₹ {roomData.total || 0}
                     </p>
                     <button
@@ -562,7 +556,7 @@ function ProjectView() {
 
                         navigate(`/configure/${finalRoomType}`, { state: { projectId: id, roomId: roomId } });
                       }}
-                      className="text-sm bg-blue-600/10 text-blue-700 font-bold px-6 py-2 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm"
+                      className="text-sm bg-white border border-gray-300 text-gray-700 font-semibold px-5 py-2 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
                     >
                       Edit Room
                     </button>
@@ -590,27 +584,27 @@ function ProjectView() {
                           {roomData.items.map((item, idx) => {
                             const itemImage = item.raw?.configItem?.data?.image || null;
                             return (
-                            <tr key={idx} className="hover:bg-gray-50/80 transition-colors">
+                            <tr key={idx} className="hover:bg-gray-50 transition-colors">
                               {/* THUMBNAIL */}
                               <td className="px-4 py-3">
                                 {itemImage ? (
-                                  <div className="h-12 w-12 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shrink-0">
+                                  <div className="h-12 w-12 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 shrink-0">
                                     <img src={itemImage} alt={item.name} className="w-full h-full object-cover" />
                                   </div>
                                 ) : (
-                                  <div className="h-12 w-12 rounded-lg border border-gray-100 bg-gray-50 flex items-center justify-center shrink-0">
-                                    <span className="text-[9px] text-gray-300 font-bold uppercase leading-tight text-center">No{"\n"}Img</span>
+                                  <div className="h-12 w-12 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center shrink-0">
+                                    <span className="text-[9px] text-gray-400 font-bold uppercase leading-tight text-center">No{"\n"}Img</span>
                                   </div>
                                 )}
                               </td>
-                              <td className="px-4 py-4 text-xs font-bold text-gray-500 uppercase">{item.category || "-"}</td>
-                              <td className="px-4 py-4 font-bold text-gray-900">{item.name || item.design || "Unknown Item"}</td>
-                              <td className="px-4 py-4"><span className="text-xs font-mono text-blue-700 bg-blue-50 px-2.5 py-1 rounded inline-block">{item.details || item.level || "-"}</span></td>
-                              <td className="px-4 py-4 text-gray-900 font-bold text-right text-lg">₹{(item.price || 0).toLocaleString()}</td>
+                              <td className="px-4 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{item.category || "-"}</td>
+                              <td className="px-4 py-4 font-semibold text-gray-900">{item.name || item.design || "Unknown Item"}</td>
+                              <td className="px-4 py-4"><span className="text-xs font-mono text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100 inline-block">{item.details || item.level || "-"}</span></td>
+                              <td className="px-4 py-4 text-gray-900 font-bold text-right text-base">₹{(item.price || 0).toLocaleString()}</td>
                               <td className="px-4 py-4 text-center">
                                 <button
                                   onClick={() => handleDeleteItem(roomId, idx, item.price || 0)}
-                                  className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-md font-bold text-xs transition-colors"
+                                  className="text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-100 px-3 py-1.5 rounded-md font-semibold text-[11px] uppercase tracking-wider transition-colors"
                                 >
                                   Remove
                                 </button>
@@ -630,7 +624,7 @@ function ProjectView() {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 }
 

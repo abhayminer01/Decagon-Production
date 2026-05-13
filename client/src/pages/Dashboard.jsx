@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../api";
+import Layout from "../components/Layout";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -32,103 +33,10 @@ function Dashboard() {
     .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0))
     .slice(0, 8);
 
-  const displayName = localStorage.getItem("username") || "User";
-  const email = localStorage.getItem("email") || "";
-
-  const navLinks = [
-    { label: "Dashboard", path: "/dashboard" },
-    { label: "New Project", path: "/project-type" },
-    { label: "Ongoing", path: "/ongoing" },
-    { label: "Completed", path: "/completed" },
-  ];
-
-  const isActive = (path) => location.pathname === path;
-
   return (
-    <div className="min-h-screen bg-[#f8f8f6] flex font-sans" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
-
-      {/* ── SIDEBAR ── */}
-      <aside className="w-56 bg-[#1a1a1a] flex flex-col fixed top-0 left-0 h-screen z-40">
-        {/* Brand */}
-        <div className="px-6 py-6 border-b border-white/[0.07]">
-          <button onClick={() => navigate("/dashboard")} className="text-white font-black text-lg tracking-[0.15em]">
-            DECAGON
-          </button>
-          <p className="text-white/30 text-[10px] font-medium mt-0.5 tracking-wide">Interior Management</p>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 py-4 px-3 space-y-0.5">
-          <p className="text-white/20 text-[9px] font-bold uppercase tracking-widest px-3 py-2 mt-1">Navigation</p>
-          {navLinks.map(({ label, path }) => (
-            <button
-              key={path}
-              onClick={() => navigate(path)}
-              className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                isActive(path)
-                  ? "bg-white/10 text-white font-semibold"
-                  : "text-white/45 hover:text-white/70 hover:bg-white/[0.05] font-medium"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-
-          <p className="text-white/20 text-[9px] font-bold uppercase tracking-widest px-3 py-2 mt-4">System</p>
-          <button
-            onClick={() => navigate("/admin")}
-            className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-              isActive("/admin")
-                ? "bg-white/10 text-white font-semibold"
-                : "text-white/45 hover:text-white/70 hover:bg-white/[0.05] font-medium"
-            }`}
-          >
-            Admin Panel
-          </button>
-        </nav>
-
-        {/* User + Logout */}
-        <div className="px-3 pb-5 border-t border-white/[0.07] pt-4 space-y-1">
-          <div className="px-3 py-2">
-            <p className="text-white/60 text-xs font-semibold truncate">{displayName}</p>
-            <p className="text-white/25 text-[10px] truncate">{email}</p>
-          </div>
-          <button
-            onClick={() => { localStorage.clear(); navigate("/login"); }}
-            className="w-full text-left px-3 py-2 rounded-md text-sm text-white/35 hover:text-red-400 hover:bg-red-500/5 transition-colors font-medium"
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-
-      {/* ── MAIN ── */}
-      <div className="flex-1 ml-56 flex flex-col">
-
-        {/* Top bar */}
-        <header className="bg-[#f8f8f6] border-b border-gray-200 px-10 py-4 flex justify-between items-center sticky top-0 z-30">
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">
-              {now.getHours() < 12 ? "Good morning" : now.getHours() < 17 ? "Good afternoon" : "Good evening"},{" "}
-              {displayName}
-            </h1>
-            <p className="text-[11px] text-gray-400 mt-0.5">
-              {now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate("/project-type")}
-            className="bg-gray-900 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-          >
-            New project
-          </button>
-        </header>
-
-        {/* Body */}
-        <main className="flex-1 px-10 py-8 space-y-10">
-
-          {/* STATS */}
-          <section className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200 rounded-xl overflow-hidden">
+    <Layout>
+      {/* STATS */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200 rounded-xl overflow-hidden mb-10">
             {[
               { label: "Total projects", value: loading ? "—" : projects.length, foot: "All time" },
               { label: "Ongoing", value: loading ? "—" : ongoing.length, foot: "Active drafts" },
@@ -240,15 +148,7 @@ function Dashboard() {
             </div>
           </section>
 
-        </main>
-
-        <footer className="px-10 py-4 border-t border-gray-200 text-[11px] text-gray-400 flex justify-between">
-          <span>Decagon &copy; {now.getFullYear()}</span>
-          <span>Interior Design Management Platform</span>
-        </footer>
-      </div>
-
-    </div>
+      </Layout>
   );
 }
 

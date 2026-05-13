@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Navbar from "./Navbar";
+import Layout from "./Layout";
 
 function AdminLogin({ onLoginSuccess }) {
   const [username, setUsername] = useState("");
@@ -16,50 +16,52 @@ function AdminLogin({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 flex flex-col font-sans text-gray-800">
-      <Navbar />
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-black text-gray-900 mb-2">Admin Access</h2>
-            <p className="text-sm text-gray-500 font-medium">Please enter your credentials to continue</p>
+    <Layout>
+      <div className="flex-1 flex items-center justify-center p-4 min-h-[70vh]">
+        <div className="bg-white p-8 rounded-2xl shadow-sm w-full max-w-md border border-gray-200">
+          <div className="mb-8">
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Admin Access</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Sign in to Admin Panel</h2>
+            <p className="text-sm text-gray-500">Enter your credentials to continue</p>
           </div>
           
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1 block mb-1">Username</label>
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Username</label>
               <input 
                 type="text" 
                 value={username} 
                 onChange={(e) => setUsername(e.target.value)} 
-                className="w-full border border-gray-300 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                className="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-1 focus:ring-gray-900 focus:bg-white font-medium text-gray-900 transition-colors"
                 placeholder="admin"
               />
             </div>
             
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1 block mb-1">Password</label>
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Password</label>
               <input 
                 type="password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
-                className="w-full border border-gray-300 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                className="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-1 focus:ring-gray-900 focus:bg-white font-medium text-gray-900 transition-colors"
                 placeholder="••••••••"
               />
             </div>
             
-            {error && <p className="text-red-500 text-sm font-bold text-center mt-2">{error}</p>}
+            {error && (
+              <p className="text-red-600 text-sm font-semibold text-center bg-red-50 border border-red-100 px-4 py-2 rounded-lg">{error}</p>
+            )}
             
             <button 
               type="submit" 
-              className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl mt-4 hover:bg-blue-700 transition shadow-lg"
+              className="w-full bg-gray-900 text-white font-semibold py-3 rounded-lg mt-2 hover:bg-gray-800 transition-colors shadow-sm"
             >
               Secure Login
             </button>
           </form>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
 
