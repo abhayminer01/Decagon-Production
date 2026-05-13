@@ -116,9 +116,11 @@ function RoomConfigurator() {
   };
 
   const handleDimensionSubmit = () => {
-    if (!dimWidth || !dimHeight) {
-      alert("Please enter both width and height.");
-      return;
+    if (designToSize.type !== 'styling') {
+      if (!dimWidth || !dimHeight) {
+        alert("Please enter both width and height.");
+        return;
+      }
     }
     
     const width = Number(dimWidth);
@@ -147,10 +149,13 @@ function RoomConfigurator() {
       coreText = selectedCore ? `Material: ${selectedCore}` : "No material selected";
       accText = selectedAccessory ? ` | Acc: ${selectedAccessory}` : "";
 
-    } else if (designToSize.type === 'service' || designToSize.type === 'styling') {
+    } else if (designToSize.type === 'service') {
       const serviceRate = designToSize.data.price || 0;
       basePrice = area * serviceRate;
       coreText = `@ ₹${serviceRate}/sqft`;
+    } else if (designToSize.type === 'styling') {
+      basePrice = designToSize.data.price || 0;
+      coreText = `Flat Rate`;
     }
 
     const finalPrice = basePrice + accPrice;
@@ -160,7 +165,7 @@ function RoomConfigurator() {
     const newItem = {
       category: designToSize.type === 'module' ? ("Module - " + roomSchema.modules[selectedModuleId].name) : designToSize.type === 'styling' ? "Styling" : "Service",
       name: designToSize.data.name,
-      details: `${width}W x ${height}H ft (${area} sqft) | ${coreText}${accText}`,
+      details: designToSize.type === 'styling' ? "Flat Add-on" : `${width}W x ${height}H ft (${area} sqft) | ${coreText}${accText}`,
       tier: "-",
       price: finalPrice,
       raw: rawData
@@ -256,10 +261,10 @@ function RoomConfigurator() {
     // Rate comes from the selected material
     const previewCoreObj = (coreMaterials || []).find(c => (c.name || c) === selectedCore);
     previewRate = previewCoreObj && typeof previewCoreObj === 'object' ? previewCoreObj.price : 0;
-  } else if (designToSize?.type === 'service' || designToSize?.type === 'styling') {
+  } else if (designToSize?.type === 'service') {
     previewRate = designToSize.data.price || 0;
   }
-  const previewBasePrice = curArea * previewRate;
+  const previewBasePrice = designToSize?.type === 'styling' ? (designToSize.data.price || 0) : (curArea * previewRate);
   // Accessory flat price for preview
   const previewAccObj = (accessories || []).find(a => (a.name || a) === selectedAccessory);
   const previewAccPrice = previewAccObj && typeof previewAccObj === 'object' ? previewAccObj.price : 0;
@@ -439,17 +444,19 @@ function RoomConfigurator() {
                 {editingIndex !== null && <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded align-middle">EDITING</span>}
               </h3>
 
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="flex-1 text-center">
-                  <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Width / Length (ft)</label>
-                  <input type="number" className="border border-gray-300 p-3 rounded-xl w-full text-center outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg" placeholder="0" value={dimWidth} onChange={(e) => setDimWidth(e.target.value)} />
+              {designToSize.type !== 'styling' && (
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                  <div className="flex-1 text-center">
+                    <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Width / Length (ft)</label>
+                    <input type="number" className="border border-gray-300 p-3 rounded-xl w-full text-center outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg" placeholder="0" value={dimWidth} onChange={(e) => setDimWidth(e.target.value)} />
+                  </div>
+                  <div className="flex items-center justify-center pt-6 text-gray-400 font-bold">×</div>
+                  <div className="flex-1 text-center">
+                    <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Height (ft)</label>
+                    <input type="number" className="border border-gray-300 p-3 rounded-xl w-full text-center outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg" placeholder="0" value={dimHeight} onChange={(e) => setDimHeight(e.target.value)} />
+                  </div>
                 </div>
-                <div className="flex items-center justify-center pt-6 text-gray-400 font-bold">×</div>
-                <div className="flex-1 text-center">
-                  <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Height (ft)</label>
-                  <input type="number" className="border border-gray-300 p-3 rounded-xl w-full text-center outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg" placeholder="0" value={dimHeight} onChange={(e) => setDimHeight(e.target.value)} />
-                </div>
-              </div>
+              )}
 
               {/* EXTRAS ONLY FOR MODULES */}
               {designToSize.type === 'module' && (
@@ -490,12 +497,14 @@ function RoomConfigurator() {
 
               {/* PRICE PREVIEW */}
               <div className="mt-auto">
-                {(dimWidth && dimHeight) ? (
+                {((dimWidth && dimHeight) || designToSize.type === 'styling') ? (
                   <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-4">
-                    <div className="flex justify-between items-center mb-1">
-                      <p className="text-xs text-blue-700 font-bold uppercase tracking-wide">Area</p>
-                      <p className="text-sm text-blue-800 font-bold">{curArea} sqft</p>
-                    </div>
+                    {designToSize.type !== 'styling' && (
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-xs text-blue-700 font-bold uppercase tracking-wide">Area</p>
+                        <p className="text-sm text-blue-800 font-bold">{curArea} sqft</p>
+                      </div>
+                    )}
                     {previewAccPrice > 0 && (
                       <div className="flex justify-between items-center mb-1">
                         <p className="text-xs text-blue-700 font-bold uppercase tracking-wide">Accessory (flat)</p>
@@ -517,7 +526,7 @@ function RoomConfigurator() {
                 <div className="flex gap-3">
                   <button onClick={() => { setDesignToSize(null); setEditingIndex(null); setSelectedCore(""); setSelectedFinish(""); setSelectedAccessory(""); }} className="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition text-sm">Cancel</button>
                   <button onClick={handleDimensionSubmit} className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-md shadow-blue-600/20 text-sm">
-                    {editingIndex !== null ? 'Save Changes' : 'Add to Draft'}
+                    {editingIndex !== null ? 'Save Changes' : designToSize.type === 'styling' ? 'Add Accessory' : 'Add to Draft'}
                   </button>
                 </div>
               </div>
@@ -526,7 +535,7 @@ function RoomConfigurator() {
             {/* RIGHT: IMAGE PANEL — full height */}
             <div className="w-1/2 shrink-0 relative hidden sm:block bg-gray-100">
               {designToSize.data.image ? (
-                <img src={designToSize.data.image} alt={designToSize.data.name} className="absolute inset-0 w-full h-full object-cover" />
+                <img src={designToSize.data.image} alt={designToSize.data.name} className="absolute inset-0 w-full h-full object-contain p-4" />
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-300">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -535,7 +544,7 @@ function RoomConfigurator() {
               )}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-5">
                 <p className="text-white font-black text-xl leading-tight">{designToSize.data.name}</p>
-                <p className="text-white/60 text-xs mt-0.5 uppercase tracking-wide">{designToSize.type === 'module' ? 'Module Design' : 'Service'}</p>
+                <p className="text-white/60 text-xs mt-0.5 uppercase tracking-wide">{designToSize.type === 'module' ? 'Module Design' : designToSize.type === 'styling' ? 'Styling' : 'Service'}</p>
               </div>
             </div>
 
