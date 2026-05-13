@@ -13,6 +13,7 @@ export function AdminDataProvider({ children }) {
   const [finishings, setFinishings] = useState([]);
   const [coreMaterials, setCoreMaterials] = useState([]);
   const [accessories, setAccessories] = useState([]);
+  const [stylings, setStylings] = useState([]);
   const [rooms, setRooms] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,6 +27,7 @@ export function AdminDataProvider({ children }) {
         setFinishings(data.finishings || []);
         setCoreMaterials(data.coreMaterials || []);
         setAccessories(data.accessories || []);
+        setStylings(data.stylings || []);
         setRooms(data.rooms || {});
       } catch (error) {
         console.error("Error fetching admin data:", error);
@@ -118,7 +120,7 @@ export function AdminDataProvider({ children }) {
   };
 
   return (
-    <AdminDataContext.Provider value={{ services, finishings, coreMaterials, accessories, rooms, loading, bootstrapData, fetchData }}>
+    <AdminDataContext.Provider value={{ services, finishings, coreMaterials, accessories, stylings, rooms, loading, bootstrapData, fetchData }}>
       {children}
     </AdminDataContext.Provider>
   );

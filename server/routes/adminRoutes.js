@@ -39,7 +39,7 @@ router.put('/:type', adminAuth, async (req, res) => {
     const { type } = req.params;
     const { data } = req.body;
 
-    const validTypes = ['services', 'finishings', 'coreMaterials', 'accessories', 'rooms'];
+    const validTypes = ['services', 'finishings', 'coreMaterials', 'accessories', 'stylings', 'rooms'];
     if (!validTypes.includes(type)) return res.status(400).json({ error: 'Invalid type' });
 
     await AdminData.findOneAndUpdate(

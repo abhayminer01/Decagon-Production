@@ -11,7 +11,7 @@ function RoomConfigurator() {
   
   const projectId = location.state?.projectId;
 
-  const { services, finishings, coreMaterials, accessories, rooms, loading } = useAdminData();
+  const { services, finishings, coreMaterials, accessories, stylings, rooms, loading } = useAdminData();
 
   // Navigation states
   const [activeSidebarTab, setActiveSidebarTab] = useState("modules"); // 'modules', 'services', 'finishers'
@@ -20,7 +20,7 @@ function RoomConfigurator() {
   // Search states
   const [searchMod, setSearchMod] = useState("");
   const [searchSvc, setSearchSvc] = useState("");
-  const [searchFin, setSearchFin] = useState("");
+  const [searchSty, setSearchSty] = useState("");
 
   // Selection states
   // Tiered pricing removed in favor of single price
@@ -94,9 +94,9 @@ function RoomConfigurator() {
     const n = s.name || s;
     return typeof n === 'string' && n.toLowerCase().includes(searchSvc.toLowerCase());
   });
-  const filteredFinishings = (finishings || []).filter(f => {
-    const n = f.name || f;
-    return typeof n === 'string' && n.toLowerCase().includes(searchFin.toLowerCase());
+  const filteredStylings = (stylings || []).filter(s => {
+    const n = s.name || s;
+    return typeof n === 'string' && n.toLowerCase().includes(searchSty.toLowerCase());
   });
 
   const handleEditItem = (index) => {
@@ -147,7 +147,7 @@ function RoomConfigurator() {
       coreText = selectedCore ? `Material: ${selectedCore}` : "No material selected";
       accText = selectedAccessory ? ` | Acc: ${selectedAccessory}` : "";
 
-    } else if (designToSize.type === 'service') {
+    } else if (designToSize.type === 'service' || designToSize.type === 'styling') {
       const serviceRate = designToSize.data.price || 0;
       basePrice = area * serviceRate;
       coreText = `@ ₹${serviceRate}/sqft`;
@@ -158,7 +158,7 @@ function RoomConfigurator() {
     const rawData = { width, height, selectedCore, selectedAccessory, configItem: designToSize };
 
     const newItem = {
-      category: designToSize.type === 'module' ? ("Module - " + roomSchema.modules[selectedModuleId].name) : "Service",
+      category: designToSize.type === 'module' ? ("Module - " + roomSchema.modules[selectedModuleId].name) : designToSize.type === 'styling' ? "Styling" : "Service",
       name: designToSize.data.name,
       details: `${width}W x ${height}H ft (${area} sqft) | ${coreText}${accText}`,
       tier: "-",
@@ -256,7 +256,7 @@ function RoomConfigurator() {
     // Rate comes from the selected material
     const previewCoreObj = (coreMaterials || []).find(c => (c.name || c) === selectedCore);
     previewRate = previewCoreObj && typeof previewCoreObj === 'object' ? previewCoreObj.price : 0;
-  } else if (designToSize?.type === 'service') {
+  } else if (designToSize?.type === 'service' || designToSize?.type === 'styling') {
     previewRate = designToSize.data.price || 0;
   }
   const previewBasePrice = curArea * previewRate;
@@ -285,9 +285,9 @@ function RoomConfigurator() {
                className={`flex-1 py-1.5 text-xs font-bold rounded shadow-sm transition ${activeSidebarTab === "services" ? "bg-white text-blue-600" : "text-gray-500 hover:text-gray-800"}`}
             >Services</button>
             <button 
-               onClick={() => setActiveSidebarTab("finishers")} 
-               className={`flex-1 py-1.5 text-xs font-bold rounded shadow-sm transition ${activeSidebarTab === "finishers" ? "bg-white text-blue-600" : "text-gray-500 hover:text-gray-800"}`}
-            >Finishers</button>
+               onClick={() => setActiveSidebarTab("stylings")} 
+               className={`flex-1 py-1.5 text-xs font-bold rounded shadow-sm transition ${activeSidebarTab === "stylings" ? "bg-white text-blue-600" : "text-gray-500 hover:text-gray-800"}`}
+            >Stylings</button>
           </div>
 
           {/* MODULES LIST */}
@@ -331,21 +331,30 @@ function RoomConfigurator() {
              </div>
           )}
 
-          {/* FINISHERS LIST */}
-          {activeSidebarTab === "finishers" && (
+          {/* STYLINGS LIST */}
+          {activeSidebarTab === "stylings" && (
              <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 flex flex-col">
-               <input type="text" placeholder="Search finishers..." value={searchFin} onChange={(e) => setSearchFin(e.target.value)} className="w-full border p-2 mb-2 rounded outline-none text-sm bg-gray-50 focus:bg-white focus:border-blue-500 transition" />
+               <input type="text" placeholder="Search stylings..." value={searchSty} onChange={(e) => setSearchSty(e.target.value)} className="w-full border p-2 mb-2 rounded outline-none text-sm bg-gray-50 focus:bg-white focus:border-blue-500 transition" />
                <div className="flex-1 overflow-y-auto space-y-2">
-                 {filteredFinishings.map((item, i) => {
-                   const fName = item.name || item;
+                 {filteredStylings.map((item, i) => {
+                   const sName = item.name || item;
                    return (
-                     <div key={i} onClick={() => addFinishing(fName)} className="p-3 rounded-lg cursor-pointer text-sm font-semibold transition border bg-white border-gray-100 text-gray-600 hover:bg-gray-50 flex justify-between">
-                       {fName}
-                       <span className="text-blue-500 font-bold">+</span>
+                     <div key={i} onClick={() => setDesignToSize({ type: 'styling', data: item })} className="p-3 rounded-lg cursor-pointer text-sm font-semibold transition border bg-gray-50 border-gray-100 text-gray-600 hover:bg-purple-50 hover:border-purple-200 flex items-center gap-3 group">
+                       {item.image ? (
+                         <div className="h-10 w-10 rounded-lg overflow-hidden border border-gray-200 shrink-0">
+                           <img src={item.image} alt={sName} className="w-full h-full object-cover" />
+                         </div>
+                       ) : (
+                         <div className="h-10 w-10 rounded-lg bg-gray-100 border border-gray-200 shrink-0 flex items-center justify-center">
+                           <span className="text-[8px] text-gray-400 font-bold">IMG</span>
+                         </div>
+                       )}
+                       <span className="flex-1">{sName}</span>
+                       <span className="text-purple-500 bg-white shadow-sm p-1 rounded font-bold opacity-0 group-hover:opacity-100 transition-opacity text-[10px]">Add Size</span>
                      </div>
-                   )
+                   );
                  })}
-                 {filteredFinishings.length === 0 && <p className="text-gray-400 text-sm text-center py-4">No finishers found.</p>}
+                 {filteredStylings.length === 0 && <p className="text-gray-400 text-sm text-center py-4">No stylings found.</p>}
                </div>
              </div>
           )}
@@ -408,9 +417,9 @@ function RoomConfigurator() {
               </div>
             )}
 
-            {activeSidebarTab === "finishers" && (
+            {activeSidebarTab === "stylings" && (
               <div className="h-full flex items-center justify-center text-gray-400 font-medium border-2 border-dashed border-gray-100 rounded-xl px-10 text-center">
-                Click finishers on the left sidebar to inject them as global scope remarks into the draft cart.
+                Select a styling from the left sidebar to add its dimensions and push it to the draft.
               </div>
             )}
 

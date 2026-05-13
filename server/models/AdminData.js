@@ -6,6 +6,7 @@ const adminDataSchema = new mongoose.Schema({
   finishings: { type: Array, default: [] },
   coreMaterials: { type: Array, default: [] },
   accessories: { type: Array, default: [] },
+  stylings: { type: Array, default: [] },
   rooms: { type: mongoose.Schema.Types.Mixed, default: {} },
   bootstrapData: { type: Boolean, default: false }
 }, { timestamps: true });

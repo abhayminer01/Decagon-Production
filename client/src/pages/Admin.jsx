@@ -5,7 +5,7 @@ import { useAdminData } from "../context/AdminDataContext";
 import api from "../api";
 
 function Admin() {
-  const { services, finishings, coreMaterials, accessories, rooms, loading, bootstrapData, fetchData } = useAdminData();
+  const { services, finishings, coreMaterials, accessories, stylings, rooms, loading, bootstrapData, fetchData } = useAdminData();
   const [activeTab, setActiveTab] = useState("rooms");
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
@@ -119,7 +119,7 @@ function Admin() {
     
     // Some types use images (services, accessories), others don't (coreMaterials, finishings)
     let newItem = { name: newObjName.trim(), price: Number(newObjPrice) };
-    if (type === "services" || type === "accessories") {
+    if (type === "services" || type === "accessories" || type === "stylings") {
       newItem.image = newObjImage;
     }
 
@@ -141,7 +141,7 @@ function Admin() {
     if (newPrice === null) return;
 
     let newImage = currentObj.image;
-    if (type === "services" || type === "accessories") {
+    if (type === "services" || type === "accessories" || type === "stylings") {
       const askImage = prompt(`Provide new Image URL or leave as is to keep old image:`, currentObj.image || "");
       if (askImage !== null) {
         newImage = askImage;
@@ -151,7 +151,7 @@ function Admin() {
     if (newName.trim() !== "" && !isNaN(Number(newPrice))) {
       const updatedArray = [...currentArray];
       updatedArray[index] = { name: newName.trim(), price: Number(newPrice) };
-      if (type === "services" || type === "accessories") {
+      if (type === "services" || type === "accessories" || type === "stylings") {
         updatedArray[index].image = newImage;
       }
       await api.put(`/admin/${type}`, { data: updatedArray }, {
@@ -327,7 +327,7 @@ function Admin() {
 
         {/* Tabs */}
         <div className="flex gap-4 mb-6 border-b border-gray-300 pb-2 overflow-x-auto">
-          {["rooms", "coreMaterials", "services", "accessories"].map(tab => (
+          {["rooms", "coreMaterials", "services", "accessories", "stylings"].map(tab => (
             <button
               key={tab}
               onClick={() => {
@@ -337,7 +337,7 @@ function Admin() {
               }}
               className={`px-4 py-2 font-bold transition-colors capitalize ${activeTab === tab ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-800"}`}
             >
-               {tab === "coreMaterials" ? "Materials" : tab}
+               {tab === "coreMaterials" ? "Materials" : tab === "stylings" ? "Stylings" : tab}
             </button>
           ))}
         </div>
@@ -495,10 +495,11 @@ function Admin() {
             const currentArray = activeTab === "coreMaterials" ? coreMaterials 
               : activeTab === "finishings" ? finishings 
               : activeTab === "services" ? services 
+              : activeTab === "stylings" ? stylings
               : accessories;
 
-            const hasImageUpload = activeTab === "services" || activeTab === "accessories";
-            const tabTitle = activeTab.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            const hasImageUpload = activeTab === "services" || activeTab === "accessories" || activeTab === "stylings";
+            const tabTitle = activeTab === "coreMaterials" ? "Materials" : activeTab === "stylings" ? "Stylings" : activeTab.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
 
             return (
               <div className="max-w-4xl mx-auto w-full">
@@ -512,7 +513,7 @@ function Admin() {
                     <input value={newObjName} onChange={(e) => setNewObjName(e.target.value)} placeholder={`e.g. ${tabTitle} Item`} className="w-full border border-gray-300 p-2.5 rounded outline-none focus:border-blue-500" />
                   </div>
                   <div className="w-full sm:w-32 shrink-0">
-                    <label className="text-xs text-gray-500 font-bold mb-1 block">Rate (₹/sqft)</label>
+                    <label className="text-xs text-gray-500 font-bold mb-1 block">{(activeTab === 'stylings' || activeTab === 'accessories') ? 'Rate (₹)' : 'Rate (₹/sqft)'}</label>
                     <input type="number" value={newObjPrice} onChange={(e) => setNewObjPrice(e.target.value)} placeholder="0" className="w-full border border-gray-300 p-2.5 rounded outline-none focus:border-blue-500" />
                   </div>
                   
@@ -556,7 +557,7 @@ function Admin() {
                         </div>
                         
                         <div className="flex gap-4 items-center w-full sm:w-auto justify-between sm:justify-end">
-                          <span className="font-mono text-blue-700 bg-blue-50 px-4 py-2 rounded-lg font-bold">₹{itemPrice} /sqft</span>
+                          <span className="font-mono text-blue-700 bg-blue-50 px-4 py-2 rounded-lg font-bold">{(activeTab === 'stylings' || activeTab === 'accessories') ? `₹${itemPrice} flat` : `₹${itemPrice} /sqft`}</span>
                           <div className="flex gap-2">
                             <button onClick={() => handleEditObjectItem(activeTab, currentArray, index, item)} className="text-xs bg-yellow-100 text-yellow-800 px-4 py-2 rounded-md font-bold hover:bg-yellow-200 transition">Edit</button>
                             <button onClick={() => handleDeleteObjectItem(activeTab, currentArray, index)} className="text-xs bg-red-100 text-red-700 px-4 py-2 rounded-md font-bold hover:bg-red-200 transition">Remove</button>
