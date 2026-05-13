@@ -438,18 +438,20 @@ function ProjectView() {
   };
 
   const handleApplyDiscount = async () => {
-    const amount = prompt("Enter discount amount (₹):", project.discount || 0);
-    if (amount === null) return;
-    
-    const discountVal = Number(amount);
-    if (isNaN(discountVal)) {
-      alert("Invalid amount");
+    const pct = prompt("Enter discount percentage (%):", project.discountPct || 0);
+    if (pct === null) return;
+
+    const discountPct = Number(pct);
+    if (isNaN(discountPct) || discountPct < 0 || discountPct > 100) {
+      alert("Please enter a valid percentage between 0 and 100");
       return;
     }
 
+    const discountVal = Math.round((project.total || 0) * discountPct / 100);
+
     try {
-      await api.put(`/projects/${id}`, { discount: discountVal });
-      setProject({ ...project, discount: discountVal });
+      await api.put(`/projects/${id}`, { discount: discountVal, discountPct });
+      setProject({ ...project, discount: discountVal, discountPct });
     } catch (error) {
       console.error(error);
       alert("Failed to apply discount");
@@ -490,7 +492,9 @@ function ProjectView() {
             <p className="text-gray-500 uppercase tracking-widest text-xs font-bold mb-1">Total Project Cost</p>
             <h2 className="text-4xl font-black text-gray-900 drop-shadow-sm">₹ {((project.total || 0) - (project.discount || 0)).toLocaleString()}</h2>
             {project.discount > 0 && (
-              <p className="text-green-600 text-xs font-bold mt-1 tracking-tight">Includes ₹{project.discount.toLocaleString()} Discount</p>
+              <p className="text-green-600 text-xs font-bold mt-1 tracking-tight">
+                {project.discountPct ? `${project.discountPct}% Discount applied` : `₹${project.discount.toLocaleString()} Discount`}
+              </p>
             )}
           </div>
         </div>
@@ -578,7 +582,6 @@ function ProjectView() {
                             <th className="px-4 py-3 font-semibold">Category</th>
                             <th className="px-4 py-3 font-semibold">Design Detail</th>
                             <th className="px-4 py-3 font-semibold">Configuration (Size/Scale)</th>
-                            <th className="px-4 py-3 font-semibold">Tier</th>
                             <th className="px-4 py-3 font-semibold w-1/5 text-right">Cost (₹)</th>
                             <th className="px-4 py-3 font-semibold w-24 text-center">Action</th>
                           </tr>
@@ -603,7 +606,6 @@ function ProjectView() {
                               <td className="px-4 py-4 text-xs font-bold text-gray-500 uppercase">{item.category || "-"}</td>
                               <td className="px-4 py-4 font-bold text-gray-900">{item.name || item.design || "Unknown Item"}</td>
                               <td className="px-4 py-4"><span className="text-xs font-mono text-blue-700 bg-blue-50 px-2.5 py-1 rounded inline-block">{item.details || item.level || "-"}</span></td>
-                              <td className="px-4 py-4 font-bold text-gray-700">{item.tier || '-'}</td>
                               <td className="px-4 py-4 text-gray-900 font-bold text-right text-lg">₹{(item.price || 0).toLocaleString()}</td>
                               <td className="px-4 py-4 text-center">
                                 <button

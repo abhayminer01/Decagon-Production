@@ -86,7 +86,6 @@ function Admin() {
   // Designs
   const [newDesignName, setNewDesignName] = useState("");
   const [newDesignImage, setNewDesignImage] = useState("");
-  const [newDesignPrice, setNewDesignPrice] = useState("");
 
   if (!isAdminLoggedIn) {
     return <AdminLogin onLoginSuccess={(pwd) => {
@@ -247,8 +246,8 @@ function Admin() {
   // --- DESIGNS HANDLERS ---
   const handleAddDesign = async () => {
     if (!selectedRoomId || !selectedModuleId) return;
-    if (!newDesignName.trim() || !newDesignPrice) {
-      alert("Please fill name and price.");
+    if (!newDesignName.trim()) {
+      alert("Please fill in a design name.");
       return;
     }
 
@@ -258,8 +257,7 @@ function Admin() {
     const newDesign = { 
       id: newId, 
       name: newDesignName.trim(), 
-      image: newDesignImage.trim(),
-      price: Number(newDesignPrice)
+      image: newDesignImage.trim()
     };
     
     const updatedDesigns = [...currentDesigns, newDesign];
@@ -270,7 +268,6 @@ function Admin() {
     
     setNewDesignName("");
     setNewDesignImage("");
-    setNewDesignPrice("");
   };
 
   const handleEditDesign = async (index, currentObj) => {
@@ -278,17 +275,14 @@ function Admin() {
     
     const newName = prompt("Edit Design Name:", currentObj.name);
     if (newName === null) return;
-    const newPrice = prompt("Price/sqft:", currentObj.price || currentObj.standardRate || 0);
-    if (newPrice === null) return;
     const newImg = prompt("Image URL (optional):", currentObj.image || "");
     if (newImg === null) return;
 
-    if (newName.trim() !== "" && !isNaN(Number(newPrice))) {
+    if (newName.trim() !== "") {
       const updatedDesigns = [...(rooms[selectedRoomId].modules[selectedModuleId].designs || [])];
       updatedDesigns[index] = { 
         ...currentObj, 
         name: newName.trim(), 
-        price: Number(newPrice),
         image: newImg.trim() 
       };
       const updatedRooms = { ...rooms };
@@ -440,22 +434,15 @@ function Admin() {
                         In: {rooms[selectedRoomId]?.title} &gt; {rooms[selectedRoomId]?.modules[selectedModuleId]?.name}
                       </p>
                       
-                      <div className="flex gap-3">
+                      <div className="flex gap-3 items-center">
                         <input value={newDesignName} onChange={(e) => setNewDesignName(e.target.value)} placeholder="Design Name (e.g. Hinged Sliding)" className="border border-gray-300 p-2 rounded outline-none focus:border-indigo-500 text-sm flex-1" />
                         <div className="border border-gray-300 bg-white p-2 rounded flex-1 flex items-center shrink-0">
                           <label className="text-[10px] text-gray-500 font-bold uppercase mr-2 shrink-0">Image:</label>
                           <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, setNewDesignImage)} className="text-xs w-full cursor-pointer" />
                         </div>
                       </div>
-                      
-                      <div className="grid grid-cols-1 gap-2">
-                        <div>
-                          <label className="text-xs text-gray-500 font-bold">Price (₹/sqft)</label>
-                          <input type="number" value={newDesignPrice} onChange={(e) => setNewDesignPrice(e.target.value)} placeholder="0" className="border border-gray-300 p-2 rounded outline-none focus:border-indigo-500 text-sm w-full mt-1" />
-                        </div>
-                      </div>
 
-                      <div className="flex justify-between items-end mt-1">
+                      <div className="flex justify-between items-center mt-1">
                         <p className="text-xs text-gray-500 font-bold">
                           {isUploading ? <span className="text-blue-500 animate-pulse">Uploading image...</span> : newDesignImage ? "✅ Image ready" : "No image selected"}
                         </p>
@@ -479,11 +466,7 @@ function Admin() {
                             )}
                             
                             <div className="flex-1 min-w-0">
-                               <p className="font-bold text-gray-800 text-sm leading-tight mb-2 truncate" title={design.name}>{design.name}</p>
-                               <div className="bg-gray-50 rounded p-1.5 border border-gray-100 text-center">
-                                  <p className="text-[10px] text-gray-500 uppercase font-bold mb-0.5">Rate</p>
-                                  <p className="text-sm font-black text-blue-600">₹{design.price || design.standardRate || 0}</p>
-                               </div>
+                               <p className="font-bold text-gray-800 text-sm leading-tight truncate" title={design.name}>{design.name}</p>
                             </div>
                           </div>
                           

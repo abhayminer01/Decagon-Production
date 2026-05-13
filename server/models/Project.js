@@ -11,6 +11,7 @@ const projectSchema = new mongoose.Schema({
   customId: { type: String, unique: true },
   total: { type: Number, default: 0 },
   discount: { type: Number, default: 0 },
+  discountPct: { type: Number, default: 0 },
   rooms: { type: mongoose.Schema.Types.Mixed, default: {} }, // Nested rooms data
   items: { type: Array, default: [] }
 }, { timestamps: true });

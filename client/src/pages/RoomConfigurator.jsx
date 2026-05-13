@@ -125,46 +125,42 @@ function RoomConfigurator() {
     const height = Number(dimHeight);
     const area = width * height;
     
-    let rate = 0;
-    let tierLabel = "-";
     let basePrice = 0;
     let coreText = "";
-    let finishText = "";
     let accText = "";
     let corePrice = 0;
-    let finPrice = 0;
     let accPrice = 0;
-    
-    if (designToSize.type === 'module') {
-      rate = designToSize.data.price || designToSize.data.standardRate || 0;
-      
-      basePrice = area * rate;
+    let coreRate = 0;
 
+    if (designToSize.type === 'module') {
       const coreObj = (coreMaterials || []).find(c => (c.name || c) === selectedCore);
       const accObj = (accessories || []).find(a => (a.name || a) === selectedAccessory);
 
-      const coreRate = coreObj && typeof coreObj === 'object' ? coreObj.price : 0;
+      coreRate = coreObj && typeof coreObj === 'object' ? coreObj.price : 0;
       const accFlatPrice = accObj && typeof accObj === 'object' ? accObj.price : 0;
 
+      // Price = width * height * material price
       corePrice = area * coreRate;
-      accPrice = accFlatPrice; // FLAT PRICE as requested
+      accPrice = accFlatPrice;
+      basePrice = corePrice;
 
-      coreText = selectedCore ? ` | Core: ${selectedCore} (+₹${corePrice.toLocaleString()})` : "";
-      accText = selectedAccessory ? ` | Acc: ${selectedAccessory} (+₹${accPrice.toLocaleString()} flat)` : "";
+      coreText = selectedCore ? `Material: ${selectedCore}` : "No material selected";
+      accText = selectedAccessory ? ` | Acc: ${selectedAccessory}` : "";
 
     } else if (designToSize.type === 'service') {
-      rate = designToSize.data.price;
-      basePrice = area * rate;
+      const serviceRate = designToSize.data.price || 0;
+      basePrice = area * serviceRate;
+      coreText = `@ ₹${serviceRate}/sqft`;
     }
 
-    const finalPrice = basePrice + corePrice + accPrice;
+    const finalPrice = basePrice + accPrice;
 
     const rawData = { width, height, selectedCore, selectedAccessory, configItem: designToSize };
 
     const newItem = {
       category: designToSize.type === 'module' ? ("Module - " + roomSchema.modules[selectedModuleId].name) : "Service",
       name: designToSize.data.name,
-      details: `${width}W x ${height}H ft (${area} sqft @ ₹${rate}/sqft base)${coreText}${accText}`,
+      details: `${width}W x ${height}H ft (${area} sqft) | ${coreText}${accText}`,
       tier: "-",
       price: finalPrice,
       raw: rawData
@@ -256,12 +252,18 @@ function RoomConfigurator() {
   // Dimension Modal Pre-calculations
   const curArea = Number(dimWidth) * Number(dimHeight);
   let previewRate = 0;
-  if(designToSize?.type === 'module') {
-     previewRate = designToSize.data.price || designToSize.data.standardRate || 0;
+  if (designToSize?.type === 'module') {
+    // Rate comes from the selected material
+    const previewCoreObj = (coreMaterials || []).find(c => (c.name || c) === selectedCore);
+    previewRate = previewCoreObj && typeof previewCoreObj === 'object' ? previewCoreObj.price : 0;
   } else if (designToSize?.type === 'service') {
-     previewRate = designToSize.data.price;
+    previewRate = designToSize.data.price || 0;
   }
   const previewBasePrice = curArea * previewRate;
+  // Accessory flat price for preview
+  const previewAccObj = (accessories || []).find(a => (a.name || a) === selectedAccessory);
+  const previewAccPrice = previewAccObj && typeof previewAccObj === 'object' ? previewAccObj.price : 0;
+  const previewTotalPrice = previewBasePrice + previewAccPrice;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 font-sans text-gray-800 relative">
@@ -374,30 +376,22 @@ function RoomConfigurator() {
               <div className="animate-fade-in block h-full flex flex-col">
                 <h3 className="mb-4 font-black text-2xl text-gray-900">{roomSchema.modules[selectedModuleId].name}</h3>
                 
-                {/* Tier selection removed */}
-
                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-6 flex-1 content-start">
                   {(roomSchema.modules[selectedModuleId].designs || []).filter(Boolean).map((design) => {
-                     let rateToShow = design.price || design.standardRate || 0;
-
-                     return (
-                        <div key={design.id} onClick={() => setDesignToSize({ type: 'module', data: design })} className="border border-gray-200 p-4 text-center cursor-pointer rounded-xl hover:shadow-xl hover:-translate-y-1 hover:border-blue-400 transition-all group flex flex-col bg-white">
-                          {design.image ? (
-                            <div className="h-32 w-full rounded-lg mb-4 bg-gray-100 overflow-hidden">
-                              <img src={design.image} alt={design.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            </div>
-                          ) : (
-                            <div className="h-32 w-full bg-gray-50 mb-4 rounded-lg flex items-center justify-center border border-gray-100">
-                              <span className="text-xs font-bold text-gray-300 uppercase">No Image</span>
-                            </div>
-                          )}
-                          <p className="font-bold text-gray-800 text-[15px] leading-tight mb-2 h-10 flex items-center justify-center">{design.name}</p>
-                          <div className="mt-auto bg-gray-50 py-2 rounded border border-gray-100 group-hover:bg-blue-50 transition-colors">
-                            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Rate</p>
-                            <p className="text-blue-600 font-black">₹{rateToShow}<span className="text-xs font-normal text-gray-500"> /sqft</span></p>
+                    return (
+                      <div key={design.id} onClick={() => setDesignToSize({ type: 'module', data: design })} className="border border-gray-200 p-4 text-center cursor-pointer rounded-xl hover:shadow-xl hover:-translate-y-1 hover:border-blue-400 transition-all group flex flex-col bg-white">
+                        {design.image ? (
+                          <div className="h-32 w-full rounded-lg mb-4 bg-gray-100 overflow-hidden">
+                            <img src={design.image} alt={design.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                           </div>
-                        </div>
-                     )
+                        ) : (
+                          <div className="h-32 w-full bg-gray-50 mb-4 rounded-lg flex items-center justify-center border border-gray-100">
+                            <span className="text-xs font-bold text-gray-300 uppercase">No Image</span>
+                          </div>
+                        )}
+                        <p className="font-bold text-gray-800 text-[15px] leading-tight flex items-center justify-center">{design.name}</p>
+                      </div>
+                    );
                   })}
                   {(roomSchema.modules[selectedModuleId].designs || []).length === 0 && (
                     <div className="col-span-full flex flex-col items-center justify-center py-16 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
@@ -427,103 +421,115 @@ function RoomConfigurator() {
       {/* GENERIC DIMENSIONAL INPUT MODAL */}
       {designToSize && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full animate-fade-in border border-gray-100 max-h-[90vh] overflow-y-auto custom-scrollbar">
-            
-            {/* Conditional Image Rendering */}
-            {designToSize.data.image ? (
-               <div className="w-full h-32 rounded-xl mb-4 overflow-hidden border border-gray-200 shadow-inner">
-                  <img src={designToSize.data.image} alt={designToSize.data.name} className="w-full h-full object-cover" />
-               </div>
-            ) : null}
+          <div className="bg-white rounded-2xl shadow-2xl animate-fade-in border border-gray-100 w-full max-w-4xl flex overflow-hidden" style={{maxHeight: '90vh'}}>
 
-            <h3 className="text-2xl font-black text-gray-900 mb-2 leading-tight">
-               {designToSize.data.name} 
-               {editingIndex !== null && <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded align-middle">EDITING</span>}
-            </h3>
-            
-            <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200 mb-6">
-              {designToSize.type === 'module' ? (
-                 <span className="text-xs font-bold text-gray-500 uppercase">Pricing Rate (Fixed)</span>
-              ) : (
-                 <span className="text-xs font-bold text-gray-500 uppercase">Service Scope (Fixed Rate)</span>
+            {/* LEFT: FORM */}
+            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar flex flex-col">
+              <h3 className="text-2xl font-black text-gray-900 mb-4 leading-tight">
+                {designToSize.data.name}
+                {editingIndex !== null && <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded align-middle">EDITING</span>}
+              </h3>
+
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="flex-1 text-center">
+                  <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Width / Length (ft)</label>
+                  <input type="number" className="border border-gray-300 p-3 rounded-xl w-full text-center outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg" placeholder="0" value={dimWidth} onChange={(e) => setDimWidth(e.target.value)} />
+                </div>
+                <div className="flex items-center justify-center pt-6 text-gray-400 font-bold">×</div>
+                <div className="flex-1 text-center">
+                  <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Height (ft)</label>
+                  <input type="number" className="border border-gray-300 p-3 rounded-xl w-full text-center outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg" placeholder="0" value={dimHeight} onChange={(e) => setDimHeight(e.target.value)} />
+                </div>
+              </div>
+
+              {/* EXTRAS ONLY FOR MODULES */}
+              {designToSize.type === 'module' && (
+                <div className="grid grid-cols-1 gap-3 mb-6">
+                  {(coreMaterials && coreMaterials.length > 0) && (
+                    <div>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5">Materials (Opt.)</label>
+                      <select
+                        className="border border-gray-300 p-2.5 rounded-lg w-full outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-gray-700 text-sm"
+                        value={selectedCore}
+                        onChange={(e) => setSelectedCore(e.target.value)}
+                      >
+                        <option value="">-- Original / None --</option>
+                        {coreMaterials.map((c, idx) => {
+                          const cName = typeof c === 'string' ? c : c.name;
+                          return <option key={idx} value={cName}>{cName}</option>;
+                        })}
+                      </select>
+                    </div>
+                  )}
+                  {(accessories && accessories.length > 0) && (
+                    <div>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5">Accessories (Opt.)</label>
+                      <select
+                        className="border border-gray-300 p-2.5 rounded-lg w-full outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-gray-700 text-sm"
+                        value={selectedAccessory}
+                        onChange={(e) => setSelectedAccessory(e.target.value)}
+                      >
+                        <option value="">-- No Add-on Accessories --</option>
+                        {accessories.map((acc, idx) => (
+                          <option key={idx} value={acc.name}>{acc.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
               )}
-              <span className="text-sm font-black text-blue-600">
-                 ₹{previewRate} / sqft
-              </span>
-            </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="flex-1 text-center">
-                <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Width / Length (ft)</label>
-                <input type="number" className="border border-gray-300 p-3 rounded-xl w-full text-center outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg" placeholder="0" value={dimWidth} onChange={(e) => setDimWidth(e.target.value)} />
-              </div>
-              <div className="flex items-center justify-center pt-6 text-gray-400 font-bold">×</div>
-              <div className="flex-1 text-center">
-                <label className="text-xs font-bold text-gray-500 uppercase block mb-2">Height (ft)</label>
-                <input type="number" className="border border-gray-300 p-3 rounded-xl w-full text-center outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg" placeholder="0" value={dimHeight} onChange={(e) => setDimHeight(e.target.value)} />
-              </div>
-            </div>
-
-            {/* SHOW EXTRAS ONLY FOR MODULES */}
-            {designToSize.type === 'module' && (
-              <div className="grid grid-cols-1 gap-3 mb-6">
-                {(coreMaterials && coreMaterials.length > 0) && (
-                  <div>
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5">Materials (Opt.)</label>
-                    <select 
-                      className="border border-gray-300 p-2.5 rounded-lg w-full outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-gray-700 text-sm"
-                      value={selectedCore}
-                      onChange={(e) => setSelectedCore(e.target.value)}
-                    >
-                      <option value="">-- Original / None --</option>
-                      {coreMaterials.map((c, idx) => {
-                        const cName = typeof c === 'string' ? c : c.name;
-                        const cPrice = typeof c === 'string' ? 0 : c.price;
-                        return <option key={idx} value={cName}>{cName} (+₹{cPrice}/sq)</option>;
-                      })}
-                    </select>
+              {/* PRICE PREVIEW */}
+              <div className="mt-auto">
+                {(dimWidth && dimHeight) ? (
+                  <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-4">
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="text-xs text-blue-700 font-bold uppercase tracking-wide">Area</p>
+                      <p className="text-sm text-blue-800 font-bold">{curArea} sqft</p>
+                    </div>
+                    {previewAccPrice > 0 && (
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-xs text-blue-700 font-bold uppercase tracking-wide">Accessory (flat)</p>
+                        <p className="text-sm text-blue-800 font-bold">+₹{previewAccPrice.toLocaleString()}</p>
+                      </div>
+                    )}
+                    <div className="border-t border-blue-200 mt-2 pt-2 text-center">
+                      <p className="text-2xl font-black text-blue-600">₹{previewTotalPrice.toLocaleString()}</p>
+                      {designToSize.type === 'module' && !selectedCore && (
+                        <p className="text-xs text-orange-500 font-medium mt-1">Choose a material to calculate price</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-[60px] bg-gray-50 border border-gray-100 rounded-xl mb-4 flex items-center justify-center text-sm text-gray-400 font-medium">
+                    Enter dimensions to preview price
                   </div>
                 )}
-                {/* Ext. Finish Removed as requested */}
-                {(accessories && accessories.length > 0) && (
-                  <div>
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5">Accessories (Opt.)</label>
-                    <select 
-                      className="border border-gray-300 p-2.5 rounded-lg w-full outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-gray-700 text-sm"
-                      value={selectedAccessory}
-                      onChange={(e) => setSelectedAccessory(e.target.value)}
-                    >
-                      <option value="">-- No Add-on Accessories --</option>
-                      {accessories.map((acc, idx) => {
-                        const aName = acc.name;
-                        const aPrice = acc.price;
-                        return <option key={idx} value={aName}>{aName} (+₹{aPrice} flat)</option>;
-                      })}
-                    </select>
-                  </div>
-                )}
+                <div className="flex gap-3">
+                  <button onClick={() => { setDesignToSize(null); setEditingIndex(null); setSelectedCore(""); setSelectedFinish(""); setSelectedAccessory(""); }} className="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition text-sm">Cancel</button>
+                  <button onClick={handleDimensionSubmit} className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-md shadow-blue-600/20 text-sm">
+                    {editingIndex !== null ? 'Save Changes' : 'Add to Draft'}
+                  </button>
+                </div>
               </div>
-            )}
-
-            {(dimWidth && dimHeight) ? (
-              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6 text-center">
-                <p className="text-sm text-blue-800 font-bold mb-1">Calculated Area: {curArea} sqft</p>
-                <p className="text-2xl font-black text-blue-600">
-                  ₹{previewBasePrice.toLocaleString()} {designToSize.type === 'module' && <span className="text-sm font-medium">+ Extras</span>}
-                </p>
-              </div>
-            ) : (
-              <div className="h-[70px] bg-gray-50 border border-gray-100 rounded-xl mb-6 flex items-center justify-center text-sm text-gray-400 font-medium">
-                Enter dimensions to preview price
-              </div>
-            )}
-
-            <div className="flex gap-3">
-              <button onClick={() => { setDesignToSize(null); setEditingIndex(null); setSelectedCore(""); setSelectedFinish(""); setSelectedAccessory(""); }} className="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition text-sm">Cancel</button>
-              <button onClick={handleDimensionSubmit} className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-md shadow-blue-600/20 text-sm">
-                 {editingIndex !== null ? 'Save Changes' : 'Add to Draft'}
-              </button>
             </div>
+
+            {/* RIGHT: IMAGE PANEL — full height */}
+            <div className="w-1/2 shrink-0 relative hidden sm:block bg-gray-100">
+              {designToSize.data.image ? (
+                <img src={designToSize.data.image} alt={designToSize.data.name} className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <p className="text-sm font-bold uppercase tracking-wider">No Image</p>
+                </div>
+              )}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-5">
+                <p className="text-white font-black text-xl leading-tight">{designToSize.data.name}</p>
+                <p className="text-white/60 text-xs mt-0.5 uppercase tracking-wide">{designToSize.type === 'module' ? 'Module Design' : 'Service'}</p>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
@@ -544,7 +550,6 @@ function RoomConfigurator() {
                     <th className="px-6 py-4">Category</th>
                     <th className="px-6 py-4">Item Name</th>
                     <th className="px-6 py-4">Specs / Dimensions</th>
-                    <th className="px-6 py-4">Build Tier</th>
                     <th className="px-6 py-4 text-right">Value (₹)</th>
                     <th className="px-6 py-4 text-center">Action</th>
                   </tr>
@@ -570,13 +575,6 @@ function RoomConfigurator() {
                       <td className="px-6 py-4 text-gray-900 font-bold min-w-[150px]">{item.name}</td>
                       <td className="px-6 py-4 font-mono text-[11px] text-blue-600 bg-blue-50/30 rounded break-words max-w-[300px]">
                          {item.details}
-                      </td>
-                      <td className="px-6 py-4">
-                        {item.tier !== "-" && (
-                          <span className={`px-2 py-1 rounded text-[10px] font-black uppercase whitespace-nowrap ${item.tier === 'Budget' ? 'bg-gray-100 text-gray-600' : item.tier === 'Standard' ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700'}`}>
-                            {item.tier}
-                          </span>
-                        )}
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap text-lg font-black text-gray-900">₹{item.price.toLocaleString()}</td>
                       <td className="px-6 py-4 text-center whitespace-nowrap">
